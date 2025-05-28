@@ -2,15 +2,15 @@
 import { ref, onMounted, watch } from 'vue';
 import { useAuthStore } from './stores/auth';
 import { useChecklistStore } from './stores/checklist';
-import { useAdminStore } from './stores/admin';
+// import { useAdminStore } from './stores/admin'; // Admin store is not used directly in template/script
 import { useRouter } from 'vue-router';
 import LoginForm from './components/LoginForm.vue';
-import { format, isAfter, setHours, setMinutes, isSameDay } from 'date-fns';
-import { pt } from 'date-fns/locale';
+import { format, isAfter, setHours, setMinutes } from 'date-fns'; // Removed isSameDay, pt as they were unused
+// import { pt } from 'date-fns/locale';
 
 const auth = useAuthStore();
 const checklist = useChecklistStore();
-const admin = useAdminStore();
+// const admin = useAdminStore(); // Removed unused admin variable
 const router = useRouter();
 const showLoginForm = ref(false);
 

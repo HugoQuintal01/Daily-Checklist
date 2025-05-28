@@ -1,159 +1,135 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { useAdminStore } from '../stores/admin';
-import { format } from 'date-fns';
 
-const admin = useAdminStore();
+const store = useAdminStore();
 
-onMounted(() => {
-  admin.fetchUsers();
+onMounted(async () => {
+  // Ensure admin data is fetched only if user is potentially admin and data not loaded
+  // The store action now handles waiting for auth loading
+  await store.fetchUsers();
 });
+
+// Helper function to format date (if needed in template, currently using new Date().toLocaleDateString())
+// const formatDate = (timestamp: any) => {
+//   if (!timestamp) return '';
+//   const date = timestamp instanceof Date ? timestamp : timestamp.toDate();
+//   return format(date, 'MMM d, yyyy HH:mm');
+// };
+
 </script>
 
 <template>
-  <div class="space-y-8">
-    <div class="bg-white shadow rounded-lg p-6">
-      <h2 class="text-2xl font-semibold mb-6">Admin Dashboard</h2>
-      
-      <div v-if="admin.loading" class="text-center py-8">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
-        <p class="mt-4 text-gray-600">Loading users...</p>
-      </div>
-      
-      <div v-else-if="admin.error" class="text-center py-8">
-        <p class="text-red-600">{{ admin.error }}</p>
-      </div>
-      
-      <div v-else class="space-y-6">
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stats
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Activity
-                </th>
-                <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="user in admin.users" :key="user.uid" class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div>
-                      <div class="text-sm font-medium text-gray-900">
-                        {{ user.displayName || 'No name' }}
-                      </div>
-                      <div class="text-sm text-gray-500">
-                        {{ user.email }}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div v-if="admin.userStats[user.uid]" class="text-sm text-gray-900">
-                    <div>Total Items: {{ admin.userStats[user.uid].totalItems }}</div>
-                    <div>Checked Items: {{ admin.userStats[user.uid].checkedItems }}</div>
-                  </div>
-                  <div v-else class="text-sm text-gray-500">
-                    No activity
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div v-if="admin.userStats[user.uid]?.lastActivity">
-                    {{ format(admin.userStats[user.uid].lastActivity, 'MMM d, yyyy HH:mm') }}
-                  </div>
-                  <div v-else>
-                    Never
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    @click="admin.selectUser(user.uid)"
-                    class="text-primary-600 hover:text-primary-900 mr-4"
-                  >
-                    View Details
-                  </button>
-                  <button
-                    @click="admin.deleteUser(user.uid)"
-                    class="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
+
+    <div v-if="store.loading" class="text-center py-8">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading users...</p>
     </div>
 
-    <!-- User Details Modal -->
-    <div v-if="admin.selectedUser" class="bg-white shadow rounded-lg p-6">
-      <div class="flex justify-between items-center mb-6">
-        <h3 class="text-xl font-medium">User Details</h3>
-        <button
-          @click="admin.selectedUser = null"
-          class="text-gray-400 hover:text-gray-500"
-        >
-          <span class="sr-only">Close</span>
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+    <div v-else-if="store.error" class="text-center py-8 text-red-600">
+      {{ store.error }}
+    </div>
 
-      <div class="space-y-6">
-        <div>
-          <p class="text-sm text-gray-500">Email</p>
-          <p class="font-medium">{{ admin.selectedUser.email }}</p>
+    <div v-else-if="store.users.length === 0" class="text-center py-8 text-gray-600">
+      No users found.
+    </div>
+
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        v-for="user in store.users"
+        :key="user.id"
+        class="bg-white rounded-lg shadow p-6"
+      >
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-lg font-medium">{{ user.displayName || 'No name' }}</h3>
+            <p class="text-gray-600">{{ user.email }}</p>
+            <p v-if="user.createdAt" class="text-sm text-gray-500 mt-2">
+              Joined: {{ new Date(user.createdAt).toLocaleDateString() }}
+            </p>
+          </div>
+          <button
+            @click="store.selectUser(user.id)"
+            class="text-primary-600 hover:text-primary-700"
+          >
+            View Details
+          </button>
         </div>
 
-        <div>
-          <p class="text-sm text-gray-500">Display Name</p>
-          <p class="font-medium">{{ admin.selectedUser.displayName || 'Not set' }}</p>
-        </div>
-
-        <div v-if="admin.selectedUser.phoneNumber">
-          <p class="text-sm text-gray-500">Phone Number</p>
-          <p class="font-medium">{{ admin.selectedUser.phoneNumber }}</p>
-        </div>
-
-        <div v-if="admin.selectedUser.bio">
-          <p class="text-sm text-gray-500">Bio</p>
-          <p class="font-medium whitespace-pre-line">{{ admin.selectedUser.bio }}</p>
-        </div>
-
-        <div>
-          <p class="text-sm text-gray-500">Account Created</p>
-          <p class="font-medium">{{ format(admin.selectedUser.createdAt, 'MMM d, yyyy') }}</p>
-        </div>
-
-        <div v-if="admin.selectedUser.lastLogin">
-          <p class="text-sm text-gray-500">Last Login</p>
-          <p class="font-medium">{{ format(admin.selectedUser.lastLogin, 'MMM d, yyyy HH:mm') }}</p>
-        </div>
-
-        <div v-if="admin.userStats[admin.selectedUser.uid]" class="border-t pt-6">
-          <h4 class="font-medium mb-4">Activity Stats</h4>
-          <div class="grid grid-cols-2 gap-6">
+        <!-- User Stats - Display only if selected user matches current card user -->
+        <div v-if="store.selectedUser?.id === user.id && store.userStats" class="mt-4 pt-4 border-t">
+          <h4 class="font-medium mb-2">Statistics</h4>
+          <div class="grid grid-cols-2 gap-4">
             <div>
-              <p class="text-sm text-gray-500">Total Items</p>
-              <p class="font-medium">{{ admin.userStats[admin.selectedUser.uid].totalItems }}</p>
+              <p class="text-sm text-gray-600">Total Items</p>
+              <p class="text-lg font-medium">{{ store.userStats.totalItems }}</p>
             </div>
             <div>
-              <p class="text-sm text-gray-500">Checked Items</p>
-              <p class="font-medium">{{ admin.userStats[admin.selectedUser.uid].checkedItems }}</p>
+              <p class="text-sm text-gray-600">Completed Items</p>
+              <p class="text-lg font-medium">{{ store.userStats.completedItems }}</p>
             </div>
           </div>
+          <div v-if="store.userStats.lastCompleted" class="mt-2">
+            <p class="text-sm text-gray-600">Last Completed</p>
+            <p class="text-sm">
+              {{ new Date(store.userStats.lastCompleted).toLocaleString() }}
+            </p>
+          </div>
+           <!-- Add more stats here if needed -->
         </div>
+
+        <div class="mt-4 pt-4 border-t">
+          <button
+            @click="store.deleteUser(user.id)"
+            class="text-red-600 hover:text-red-700 text-sm"
+          >
+            Delete User
+          </button>
+        </div>
+
+         <!-- Modal/Detailed View - Display only if selected user matches current card user -->
+         <div v-if="store.selectedUser?.id === user.id" class="mt-4 pt-4 border-t">
+            <h4 class="font-medium mb-4">Detailed Info</h4>
+             <div class="space-y-3">
+                <div v-if="store.selectedUser.phoneNumber">
+                   <p class="text-sm text-gray-500">Phone Number</p>
+                   <p class="font-medium">{{ store.selectedUser.phoneNumber }}</p>
+                </div>
+                 <div v-if="store.selectedUser.bio">
+                   <p class="text-sm text-gray-500">Bio</p>
+                   <p class="font-medium whitespace-pre-line">{{ store.selectedUser.bio }}</p>
+                </div>
+                 <div v-if="store.selectedUser.lastLogin">
+                   <p class="text-sm text-gray-500">Last Login</p>
+                   <p class="font-medium">{{ new Date(store.selectedUser.lastLogin).toLocaleString() }}</p>
+                </div>
+                <!-- You might want to add user items and history here as well -->
+                 <div v-if="store.userItems[user.id]?.length">
+                     <h5 class="font-medium mt-4 mb-2">Checklist Items</h5>
+                     <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li v-for="item in store.userItems[user.id]" :key="item.id">
+                            {{ item.title }} ({{ item.completed ? 'Completed' : 'Incomplete' }})
+                        </li>
+                     </ul>
+                 </div>
+                  <div v-if="store.userHistory[user.id]?.length">
+                     <h5 class="font-medium mt-4 mb-2">History Entries</h5>
+                     <ul class="list-disc list-inside text-sm text-gray-700">
+                        <li v-for="entry in store.userHistory[user.id]" :key="entry.id">
+                            {{ entry.itemTitle }} ({{ entry.uncheckedAt ? 'Unchecked' : 'Checked' }})
+                        </li>
+                     </ul>
+                 </div>
+             </div>
+             <button
+                @click="store.selectedUser = null"
+                class="mt-4 px-3 py-1 text-sm text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+             >
+               Hide Details
+             </button>
+         </div>
       </div>
     </div>
   </div>

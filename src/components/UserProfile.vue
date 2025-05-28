@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, watch } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -20,8 +20,7 @@ const phoneNumber = ref('');
 const bio = ref('');
 
 // Notification preferences
-const notificationsEnabled = ref(false);
-const notificationPermissionDenied = ref(false);
+const showNotificationToggle = ref(false);
 
 const loadUserData = async () => {
   if (!auth.user) {
@@ -31,8 +30,7 @@ const loadUserData = async () => {
     phoneNumber.value = '';
     bio.value = '';
     // Clear notification state
-    notificationsEnabled.value = false;
-    notificationPermissionDenied.value = false;
+    showNotificationToggle.value = false;
     return;
   }
   
@@ -48,25 +46,12 @@ const loadUserData = async () => {
     bio.value = data.bio || '';
     // Load notification preference from Firestore or localStorage
     // For now, let's use localStorage for simplicity
-    const storedPref = localStorage.getItem(`notificationsEnabled_${auth.user.uid}`);
-    notificationsEnabled.value = storedPref === 'true';
+    showNotificationToggle.value = localStorage.getItem(`notificationsEnabled_${auth.user.uid}`) === 'true';
   } else {
      // Clear additional fields if no firestore doc (shouldn't happen if registration works)
     phoneNumber.value = '';
     bio.value = '';
-    notificationsEnabled.value = false;
-  }
-
-   // Check current notification permission status
-  if ('Notification' in window) {
-    if (Notification.permission === 'granted') {
-      notificationPermissionDenied.value = false; // Already granted
-    } else if (Notification.permission === 'denied') {
-      notificationPermissionDenied.value = true;
-      notificationsEnabled.value = false; // Cannot enable if denied
-    } else {
-       notificationPermissionDenied.value = false; // Default or prompt state
-    }
+    showNotificationToggle.value = false;
   }
 };
 
@@ -125,55 +110,25 @@ const saveProfile = async () => {
   }
 };
 
-const toggleNotifications = async () => {
-  if (!auth.user) return; // Should not happen if button is only shown for logged in users
+const handleToggleNotifications = async () => {
+  if (!auth.user) return;
 
-  if (notificationsEnabled.value) {
-    // If currently enabled, disable them
-    notificationsEnabled.value = false;
-    localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'false');
-    success.value = 'Notifications disabled';
-    error.value = null;
-  } else {
-    // If currently disabled, enable them (requires permission)
-    if (!('Notification' in window)) {
-      error.value = 'Browser does not support notifications';
-      success.value = null;
-      return;
-    }
+  const isEnabled = !showNotificationToggle.value;
 
-    if (Notification.permission === 'denied') {
-      error.value = 'Notification permission denied by user. Please enable in browser settings.';
-      notificationPermissionDenied.value = true;
-      success.value = null;
-      return;
-    }
-
-    // Request permission if not already granted
-    if (Notification.permission === 'default') {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        notificationsEnabled.value = true;
-        notificationPermissionDenied.value = false;
-        localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'true');
-        success.value = 'Notifications enabled!';
-        error.value = null;
-      } else {
-        // Permission denied during request
-        notificationsEnabled.value = false;
-        notificationPermissionDenied.value = true;
-        localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'false'); // Store as false
-        error.value = 'Notification permission denied.';
-        success.value = null;
-      }
-    } else if (Notification.permission === 'granted') {
-      // Permission already granted, just enable
-      notificationsEnabled.value = true;
-      notificationPermissionDenied.value = false;
+  if (isEnabled) {
+    // Request notification permission if enabling
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
       localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'true');
-      success.value = 'Notifications enabled!';
-      error.value = null;
+      showNotificationToggle.value = true;
+    } else {
+      alert('Permission denied for notifications. Please enable them in your browser settings.');
+      showNotificationToggle.value = false;
     }
+  } else {
+    // Disable notifications
+    localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'false');
+    showNotificationToggle.value = false;
   }
 };
 
@@ -276,9 +231,8 @@ watch(() => auth.loading, (isLoading) => {
                         id="notificationToggle"
                         type="checkbox"
                         class="sr-only"
-                        v-model="notificationsEnabled"
-                        @change="toggleNotifications"
-                        :disabled="notificationPermissionDenied"
+                        :checked="showNotificationToggle"
+                        @change="handleToggleNotifications"
                      >
                      <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
                      <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
@@ -287,13 +241,7 @@ watch(() => auth.loading, (isLoading) => {
                      Enable Browser Notifications
                   </div>
                </label>
-               <p v-if="notificationPermissionDenied" class="text-red-600 text-sm ml-4">
-                 Permission Denied
-               </p>
             </div>
-            <p v-if="notificationPermissionDenied" class="mt-2 text-sm text-gray-600">
-              To receive notifications, you need to enable them in your browser settings.
-            </p>
         </div>
 
         <div class="border-t pt-4">
@@ -372,10 +320,14 @@ watch(() => auth.loading, (isLoading) => {
 
 <style scoped>
 /* Custom toggle switch styling */
-input:checked ~ .block {
-  background-color: #4f46e5;
+.dot {
+  transform: translateX(0);
 }
 input:checked ~ .dot {
-  transform: translateX(20px);
+  transform: translateX(100%);
+  background-color: #48bb78; /* Tailwind green-500 */
+}
+input:checked ~ .block {
+    background-color: #63b3ed; /* Tailwind blue-400 */
 }
 </style> 

@@ -54,10 +54,6 @@ const handleSubmit = async () => {
         />
       </div>
 
-      <div v-if="auth.error" class="text-red-600 text-sm">
-        {{ auth.error }}
-      </div>
-
       <div class="flex flex-col space-y-3">
         <button
           type="submit"

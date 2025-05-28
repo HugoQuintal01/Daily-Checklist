@@ -15,4 +15,6 @@ export interface ChecklistHistory {
   itemId: string;
   userId: string;
   completedAt: Timestamp;
+  uncheckedAt?: Timestamp | null;
+  itemTitle: string;
 } 

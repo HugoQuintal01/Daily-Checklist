@@ -22,7 +22,7 @@ const saveEdit = async () => {
   if (editedTitle.value.trim()) {
     await store.updateItem(props.item.id, {
       title: editedTitle.value.trim(),
-      description: editedDescription.value.trim() || null
+      description: editedDescription.value.trim() || undefined
     });
     isEditing.value = false;
   }
