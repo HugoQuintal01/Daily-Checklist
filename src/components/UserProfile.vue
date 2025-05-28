@@ -1,148 +1,182 @@
-<script setup lang="ts">
+<script lang="ts">
 import { ref, watch } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { updateProfile, updateEmail, updatePassword } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-const auth = useAuthStore();
-const displayName = ref('');
-const email = ref('');
-const newPassword = ref('');
-const confirmPassword = ref('');
-const isEditing = ref(false);
-const loading = ref(false);
-const error = ref<string | null>(null);
-const success = ref<string | null>(null);
+export default {
+  setup() {
+    const auth = useAuthStore();
+    const displayName = ref('');
+    const email = ref('');
+    const newPassword = ref('');
+    const confirmPassword = ref('');
+    const isEditing = ref(false);
+    const loading = ref(false);
+    const error = ref<string | null>(null);
+    const success = ref<string | null>(null);
 
-// Additional user information
-const phoneNumber = ref('');
-const bio = ref('');
+    // Additional user information
+    const phoneNumber = ref('');
+    const bio = ref('');
 
-// Notification preferences
-const showNotificationToggle = ref(false);
+    // Notification preferences
+    const showNotificationToggle = ref(false);
 
-const loadUserData = async () => {
-  if (!auth.user) {
-    // Clear fields if no user
-    displayName.value = '';
-    email.value = '';
-    phoneNumber.value = '';
-    bio.value = '';
-    // Clear notification state
-    showNotificationToggle.value = false;
-    return;
-  }
-  
-  // Load basic profile from auth state
-  displayName.value = auth.user.displayName || '';
-  email.value = auth.user.email || '';
-  
-  // Load additional user data from Firestore
-  const userDoc = await getDoc(doc(db, 'users', auth.user.uid));
-  if (userDoc.exists()) {
-    const data = userDoc.data();
-    phoneNumber.value = data.phoneNumber || '';
-    bio.value = data.bio || '';
-    // Load notification preference from Firestore or localStorage
-    // For now, let's use localStorage for simplicity
-    showNotificationToggle.value = localStorage.getItem(`notificationsEnabled_${auth.user.uid}`) === 'true';
-  } else {
-     // Clear additional fields if no firestore doc (shouldn't happen if registration works)
-    phoneNumber.value = '';
-    bio.value = '';
-    showNotificationToggle.value = false;
-  }
-};
-
-const saveProfile = async () => {
-  if (!auth.user) return;
-  
-  loading.value = true;
-  error.value = null;
-  success.value = null;
-  
-  try {
-    // Update basic profile in Firebase Auth
-    if (displayName.value !== auth.user.displayName) {
-      await updateProfile(auth.user, {
-        displayName: displayName.value.trim()
-      });
-    }
-    
-    // Update email in Firebase Auth if changed
-    if (email.value !== auth.user.email) {
-       // Note: Updating email requires re-authentication for security
-       // For simplicity, we'll just update it here, but in a real app
-       // you'd need to prompt the user to re-authenticate first.
-      await updateEmail(auth.user, email.value);
-    }
-    
-    // Update password in Firebase Auth only if both fields are filled
-    if (newPassword.value && confirmPassword.value) {
-      if (newPassword.value !== confirmPassword.value) {
-        throw new Error('Passwords do not match');
+    const loadUserData = async () => {
+      if (!auth.user) {
+        // Clear fields if no user
+        displayName.value = '';
+        email.value = '';
+        phoneNumber.value = '';
+        bio.value = '';
+        // Clear notification state
+        showNotificationToggle.value = false;
+        return;
       }
-       // Note: Updating password also requires re-authentication
-      await updatePassword(auth.user, newPassword.value);
-    }
-    
-    // Save additional user data to Firestore
-    await setDoc(doc(db, 'users', auth.user.uid), {
-      phoneNumber: phoneNumber.value.trim() || null, // Store as null if empty
-      bio: bio.value.trim() || null, // Store as null if empty
-      updatedAt: new Date()
-    }, { merge: true });
-    
-    // Reload user data to reflect changes immediately
-    await loadUserData();
+      
+      // Load basic profile from auth state
+      displayName.value = auth.user.displayName || '';
+      email.value = auth.user.email || '';
+      
+      // Load additional user data from Firestore
+      const userDoc = await getDoc(doc(db, 'users', auth.user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        phoneNumber.value = data.phoneNumber || '';
+        bio.value = data.bio || '';
+        // Load notification preference from Firestore or localStorage
+        // For now, let's use localStorage for simplicity
+        showNotificationToggle.value = localStorage.getItem(`notificationsEnabled_${auth.user.uid}`) === 'true';
+      } else {
+         // Clear additional fields if no firestore doc (shouldn't happen if registration works)
+        phoneNumber.value = '';
+        bio.value = '';
+        showNotificationToggle.value = false;
+      }
+    };
 
-    success.value = 'Profile updated successfully';
-    isEditing.value = false;
-    
-    // Clear password fields after successful update
-    newPassword.value = '';
-    confirmPassword.value = '';
-  } catch (err: any) {
-    error.value = err.message;
-  } finally {
-    loading.value = false;
-  }
+    const saveProfile = async () => {
+      if (!auth.user) return;
+      
+      loading.value = true;
+      error.value = null;
+      success.value = null;
+      
+      try {
+        // Update basic profile in Firebase Auth
+        if (displayName.value !== auth.user.displayName) {
+          await updateProfile(auth.user, {
+            displayName: displayName.value.trim()
+          });
+        }
+        
+        // Update email in Firebase Auth if changed
+        if (email.value !== auth.user.email) {
+           // Note: Updating email requires re-authentication for security
+           // For simplicity, we'll just update it here, but in a real app
+           // you'd need to prompt the user to re-authenticate first.
+          await updateEmail(auth.user, email.value);
+        }
+        
+        // Update password in Firebase Auth only if both fields are filled
+        if (newPassword.value && confirmPassword.value) {
+          if (newPassword.value !== confirmPassword.value) {
+            throw new Error('Passwords do not match');
+          }
+           // Note: Updating password also requires re-authentication
+          await updatePassword(auth.user, newPassword.value);
+        }
+        
+        // Save additional user data to Firestore
+        await setDoc(doc(db, 'users', auth.user.uid), {
+          phoneNumber: phoneNumber.value.trim() || null, // Store as null if empty
+          bio: bio.value.trim() || null, // Store as null if empty
+          updatedAt: new Date()
+        }, { merge: true });
+        
+        // Reload user data to reflect changes immediately
+        await loadUserData();
+
+        success.value = 'Profile updated successfully';
+        isEditing.value = false;
+        
+        // Clear password fields after successful update
+        newPassword.value = '';
+        confirmPassword.value = '';
+      } catch (err: any) {
+        error.value = err.message;
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const handleToggleNotifications = async () => {
+      if (!auth.user) return;
+
+      const isEnabled = !showNotificationToggle.value;
+
+      if (isEnabled) {
+        // Request notification permission if enabling
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'true');
+          showNotificationToggle.value = true;
+        } else {
+          alert('Permission denied for notifications. Please enable them in your browser settings.');
+          showNotificationToggle.value = false;
+        }
+      } else {
+        // Disable notifications
+        localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'false');
+        showNotificationToggle.value = false;
+      }
+    };
+
+    const cancelEdit = () => {
+      isEditing.value = false;
+      // Optionally reset fields to original values
+      if (auth.user) {
+         displayName.value = auth.user.displayName || '';
+         email.value = auth.user.email || '';
+         // Note: We don't reload other data here, assuming it hasn't changed externally
+      }
+      newPassword.value = '';
+      confirmPassword.value = '';
+    };
+
+    // Watch for auth user changes and load data
+    watch(() => auth.user, loadUserData, { immediate: true });
+
+    // Add a watcher for loading state in case needed for UI feedback
+    watch(() => auth.loading, (isLoading) => {
+      if (!isLoading && !auth.user) {
+        // User logged out, clear data
+        loadUserData(); // loadUserData handles clearing when user is null
+      }
+    });
+
+    return {
+      auth,
+      displayName,
+      email,
+      newPassword,
+      confirmPassword,
+      isEditing,
+      loading,
+      error,
+      success,
+      phoneNumber,
+      bio,
+      showNotificationToggle,
+      loadUserData,
+      saveProfile,
+      handleToggleNotifications,
+      cancelEdit,
+    };
+  },
 };
-
-const handleToggleNotifications = async () => {
-  if (!auth.user) return;
-
-  const isEnabled = !showNotificationToggle.value;
-
-  if (isEnabled) {
-    // Request notification permission if enabling
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'true');
-      showNotificationToggle.value = true;
-    } else {
-      alert('Permission denied for notifications. Please enable them in your browser settings.');
-      showNotificationToggle.value = false;
-    }
-  } else {
-    // Disable notifications
-    localStorage.setItem(`notificationsEnabled_${auth.user.uid}`, 'false');
-    showNotificationToggle.value = false;
-  }
-};
-
-// Watch for auth user changes and load data
-watch(() => auth.user, loadUserData, { immediate: true });
-
-// Add a watcher for loading state in case needed for UI feedback
-watch(() => auth.loading, (isLoading) => {
-  if (!isLoading && !auth.user) {
-    // User logged out, clear data
-    loadUserData(); // loadUserData handles clearing when user is null
-  }
-});
-
 </script>
 
 <template>
