@@ -18,7 +18,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="card">
+  <div class="bg-white shadow-md rounded-lg p-6 mb-6">
     <button
       v-if="!isOpen"
       @click="isOpen = true"
@@ -40,45 +40,49 @@ const handleSubmit = async () => {
       <span>Add New Item</span>
     </button>
 
-    <form v-else @submit.prevent="handleSubmit" class="space-y-4">
+    <form v-else @submit.prevent="handleSubmit" class="space-y-5">
       <div>
-        <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+        <label for="title" class="block text-sm font-medium text-gray-800">Title</label>
         <input
           id="title"
           v-model="title"
           type="text"
           required
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
           placeholder="What needs to be done?"
         />
       </div>
 
       <div>
-        <label for="description" class="block text-sm font-medium text-gray-700">Description (optional)</label>
+        <label for="description" class="block text-sm font-medium text-gray-800">Description (optional)</label>
         <textarea
           id="description"
           v-model="description"
-          rows="2"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+          rows="3"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
           placeholder="Add some details..."
         />
       </div>
 
-      <div class="flex justify-end space-x-3">
+      <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">
         <button
           type="button"
           @click="isOpen = false"
-          class="btn btn-secondary"
+          class="w-full sm:w-auto inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:text-sm transition-colors duration-200"
         >
           Cancel
         </button>
         <button
           type="submit"
-          class="btn btn-primary"
+          class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm transition-colors duration-200"
         >
           Add Item
         </button>
       </div>
     </form>
   </div>
-</template> 
+</template>
+
+<style scoped>
+/* Add form specific styles here if needed */
+</style> 

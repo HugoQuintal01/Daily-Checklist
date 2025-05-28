@@ -49,13 +49,13 @@ const handleToggle = async () => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow">
+  <div class="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow duration-200 mb-4">
     <div class="flex items-start space-x-4">
       <!-- Checkbox -->
       <div class="flex-shrink-0 pt-1">
         <button
           @click="handleToggle"
-          class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
+          class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
           :class="[
             item.completed 
               ? 'bg-primary-500 border-primary-500 hover:bg-primary-600 hover:border-primary-600' 
@@ -81,45 +81,45 @@ const handleToggle = async () => {
 
       <!-- Content -->
       <div class="flex-grow min-w-0">
-        <div v-if="isEditing" class="space-y-2">
+        <div v-if="isEditing" class="space-y-3 w-full">
           <input
             v-model="editedTitle"
             type="text"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
             placeholder="Item title"
           />
           <textarea
             v-model="editedDescription"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
             placeholder="Item description (optional)"
-            rows="2"
+            rows="3"
           />
-          <div class="flex space-x-2">
+          <div class="flex justify-end space-x-3 mt-2">
             <button
               @click="saveEdit"
-              class="px-3 py-1 text-sm text-white bg-primary-500 rounded-md hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
             >
               Save
             </button>
             <button
               @click="cancelEdit"
-              class="px-3 py-1 text-sm text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:text-sm transition-colors duration-200"
             >
               Cancel
             </button>
           </div>
         </div>
-        <div v-else>
+        <div v-else class="w-full">
           <h3 
-            class="text-lg font-medium"
+            class="text-lg font-semibold text-gray-800"
             :class="{ 'line-through text-gray-500': item.completed }"
           >
             {{ item.title }}
           </h3>
-          <p v-if="item.description" class="mt-1 text-gray-600">
+          <p v-if="item.description" class="mt-1 text-gray-600 text-sm">
             {{ item.description }}
           </p>
-          <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+          <div class="mt-3 flex flex-wrap gap-2 text-sm text-gray-500">
             <span>Created: {{ formatDate(item.createdAt) }}</span>
             <span v-if="item.updatedAt">Updated: {{ formatDate(item.updatedAt) }}</span>
           </div>
@@ -127,19 +127,21 @@ const handleToggle = async () => {
       </div>
 
       <!-- Actions -->
-      <div v-if="!isEditing" class="flex-shrink-0 flex space-x-2">
+      <div v-if="!isEditing" class="flex-shrink-0 flex flex-col space-y-2">
         <button
           @click="startEdit"
-          class="p-1 text-gray-400 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded-md"
+          class="p-2 rounded-md text-gray-400 hover:text-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-colors duration-200"
         >
+          <span class="sr-only">Edit item</span>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
         </button>
         <button
           @click="store.deleteItem(item.id)"
-          class="p-1 text-gray-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded-md"
+          class="p-2 rounded-md text-gray-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
         >
+          <span class="sr-only">Delete item</span>
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
@@ -147,4 +149,8 @@ const handleToggle = async () => {
       </div>
     </div>
   </div>
-</template> 
+</template>
+
+<style scoped>
+/* Add component specific styles here if needed */
+</style> 

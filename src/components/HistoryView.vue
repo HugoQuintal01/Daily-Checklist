@@ -88,35 +88,39 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow p-4">
-    <h2 class="text-lg font-medium mb-4">History</h2>
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">History</h2>
     
-    <div v-if="loading" class="text-center py-4">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-      <p class="mt-2 text-gray-600">Loading history...</p>
+    <div v-if="loading" class="text-center py-8">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading history...</p>
     </div>
     
-    <div v-else-if="error" class="text-center py-4 text-red-600">
+    <div v-else-if="error" class="text-center py-8 text-red-600">
       {{ error }}
     </div>
     
-    <div v-else-if="history.length === 0" class="text-center py-4 text-gray-600">
-      No history yet
+    <div v-else-if="history.length === 0" class="text-center py-8 text-gray-600">
+      No history yet.
     </div>
     
-    <div v-else class="space-y-2">
+    <div v-else class="space-y-4">
       <div
         v-for="item in history"
         :key="item.id"
-        class="flex items-center justify-between p-2 hover:bg-gray-50 rounded transition-colors"
+        class="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0"
       >
         <div>
-          <p class="font-medium">{{ item.itemTitle }}</p>
-          <p class="text-sm text-gray-500">
+          <p class="font-medium text-gray-900">{{ item.itemTitle }}</p>
+          <p class="text-sm text-gray-600 mt-1">
             Completed: {{ formatDate(item.completedAt) }}
           </p>
         </div>
       </div>
     </div>
   </div>
-</template> 
+</template>
+
+<style scoped>
+/* Add component specific styles here if needed */
+</style> 

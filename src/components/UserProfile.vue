@@ -146,43 +146,44 @@ watch(() => auth.loading, (isLoading) => {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow p-4">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-xl font-semibold">Profile</h2>
+  <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Profile</h2>
       <button
         v-if="!isEditing && auth.user"
         @click="isEditing = true"
-        class="text-sm text-primary-600 hover:text-primary-700"
+        class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-primary-600 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
       >
-        Edit
+        Edit Profile
       </button>
     </div>
 
-    <div v-if="auth.loading" class="text-center py-4">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-      <p class="mt-2 text-gray-600">Loading profile...</p>
+    <div v-if="auth.loading" class="text-center py-8">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-500 mx-auto"></div>
+      <p class="mt-4 text-gray-600">Loading profile...</p>
     </div>
 
-    <div v-else-if="!auth.user" class="text-center py-4 text-gray-600">
+    <div v-else-if="!auth.user" class="text-center py-8 text-gray-600">
       Please log in to view your profile.
     </div>
 
     <div v-else>
-      <div v-if="success" class="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
+      <div v-if="success" class="mb-6 p-4 bg-green-100 text-green-800 rounded-md border border-green-200">
         {{ success }}
       </div>
-       <div v-if="error" class="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+       <div v-if="error" class="mb-6 p-4 bg-red-100 text-red-800 rounded-md border border-red-200">
         {{ error }}
       </div>
 
-      <div v-if="isEditing" class="space-y-4">
+      <div v-if="isEditing" class="space-y-6">
+        <!-- Basic Info -->
         <div>
           <label for="displayName" class="block text-sm font-medium text-gray-700">Display Name</label>
           <input
             id="displayName"
             v-model="displayName"
             type="text"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
             placeholder="Your name"
           />
         </div>
@@ -194,36 +195,42 @@ watch(() => auth.loading, (isLoading) => {
             v-model="email"
             type="email"
             required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
             placeholder="your@email.com"
           />
         </div>
 
-        <div>
-          <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
-          <input
-            id="phoneNumber"
-            v-model="phoneNumber"
-            type="tel"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-            placeholder="+1 (555) 000-0000"
-          />
+        <!-- Additional Info -->
+        <div class="pt-4 border-t border-gray-200">
+           <h3 class="text-lg font-medium text-gray-800 mb-3">Additional Information</h3>
+            <div class="space-y-4">
+              <div>
+                <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                <input
+                  id="phoneNumber"
+                  v-model="phoneNumber"
+                  type="tel"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+
+              <div>
+                <label for="bio" class="block text-sm font-medium text-gray-700">Bio</label>
+                <textarea
+                  id="bio"
+                  v-model="bio"
+                  rows="4"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
+                  placeholder="Tell us about yourself"
+                />
+              </div>
+            </div>
         </div>
 
-        <div>
-          <label for="bio" class="block text-sm font-medium text-gray-700">Bio</label>
-          <textarea
-            id="bio"
-            v-model="bio"
-            rows="3"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-            placeholder="Tell us about yourself"
-          />
-        </div>
-
-         <!-- Notifications Toggle (within edit mode for simplicity) -->
-        <div class="border-t pt-4">
-           <h3 class="text-lg font-medium mb-3">Notifications</h3>
+         <!-- Notifications Toggle -->
+        <div class="pt-4 border-t border-gray-200">
+           <h3 class="text-lg font-medium text-gray-800 mb-3">Notifications</h3>
             <div class="flex items-center justify-between">
                <label for="notificationToggle" class="flex items-center cursor-pointer">
                   <div class="relative">
@@ -234,18 +241,19 @@ watch(() => auth.loading, (isLoading) => {
                         :checked="showNotificationToggle"
                         @change="handleToggleNotifications"
                      >
-                     <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
-                     <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+                     <div :class="showNotificationToggle ? 'bg-primary-600' : 'bg-gray-200'" class="block w-14 h-8 rounded-full transition-colors duration-200 ease-in-out"></div>
+                     <div :class="showNotificationToggle ? 'translate-x-6' : 'translate-x-1'" class="dot absolute top-1 left-1 bg-white w-6 h-6 rounded-full transition-transform duration-200 ease-in-out shadow"></div>
                   </div>
-                  <div class="ml-3 text-gray-700 font-medium">
+                  <div class="ml-3 text-gray-800 font-medium">
                      Enable Browser Notifications
                   </div>
                </label>
             </div>
         </div>
 
-        <div class="border-t pt-4">
-          <h3 class="text-lg font-medium mb-3">Change Password</h3>
+        <!-- Change Password -->
+        <div class="pt-4 border-t border-gray-200">
+          <h3 class="text-lg font-medium text-gray-800 mb-3">Change Password</h3>
           <div class="space-y-4">
             <div>
               <label for="newPassword" class="block text-sm font-medium text-gray-700">New Password</label>
@@ -253,65 +261,72 @@ watch(() => auth.loading, (isLoading) => {
                 id="newPassword"
                 v-model="newPassword"
                 type="password"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                placeholder="Leave blank to keep current password"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
+                placeholder="Enter new password"
               />
             </div>
-
             <div>
               <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm New Password</label>
               <input
                 id="confirmPassword"
                 v-model="confirmPassword"
                 type="password"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
                 placeholder="Confirm new password"
               />
             </div>
           </div>
         </div>
 
-        <div v-if="error" class="text-sm text-red-600">
-          {{ error }}
-        </div>
-
-        <div class="flex justify-end space-x-3">
-          <button
-            @click="isEditing = false"
-            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            :disabled="loading"
-          >
-            Cancel
-          </button>
-          <button
-            @click="saveProfile"
-            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-            :disabled="loading"
-          >
-            {{ loading ? 'Saving...' : 'Save Changes' }}
-          </button>
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3 pt-4 border-t border-gray-200">
+           <button
+              type="button"
+              @click="cancelEdit"
+              class="w-full sm:w-auto inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:text-sm transition-colors duration-200"
+            >
+              Cancel
+            </button>
+           <button
+              type="button"
+              @click="saveProfile"
+              :disabled="loading"
+              class="w-full sm:w-auto inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:text-sm transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l2-2.647z"></path>
+              </svg>
+              Save Profile
+            </button>
         </div>
       </div>
 
       <div v-else class="space-y-4">
+        <!-- Basic Info -->
         <div>
-          <p class="text-sm text-gray-500">Display Name</p>
-          <p class="font-medium">{{ auth.user?.displayName || displayName || 'Not set' }}</p>
-        </div>
-        
-        <div>
-          <p class="text-sm text-gray-500">Email</p>
-          <p class="font-medium">{{ auth.user?.email || email || 'Not set' }}</p>
+           <h3 class="text-lg font-medium text-gray-800 mb-1">Basic Information</h3>
+           <p class="text-gray-700"><strong>Display Name:</strong> {{ auth.user.displayName || 'N/A' }}</p>
+           <p class="text-gray-700"><strong>Email:</strong> {{ auth.user.email || 'N/A' }}</p>
         </div>
 
-        <div v-if="phoneNumber">
-          <p class="text-sm text-gray-500">Phone Number</p>
-          <p class="font-medium">{{ phoneNumber }}</p>
+        <!-- Additional Info -->
+        <div class="pt-4 border-t border-gray-200">
+           <h3 class="text-lg font-medium text-gray-800 mb-1">Additional Information</h3>
+            <p class="text-gray-700"><strong>Phone Number:</strong> {{ phoneNumber || 'N/A' }}</p>
+            <p class="text-gray-700"><strong>Bio:</strong> {{ bio || 'N/A' }}</p>
         </div>
 
-        <div v-if="bio">
-          <p class="text-sm text-gray-500">Bio</p>
-          <p class="font-medium whitespace-pre-line">{{ bio }}</p>
+        <!-- Notifications -->
+         <div class="pt-4 border-t border-gray-200">
+           <h3 class="text-lg font-medium text-gray-800 mb-1">Notifications</h3>
+            <p class="text-gray-700"><strong>Browser Notifications:</strong> {{ showNotificationToggle ? 'Enabled' : 'Disabled' }}</p>
+             <button
+                @click="handleToggleNotifications"
+                class="mt-2 inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-primary-600 bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200"
+              >
+                {{ showNotificationToggle ? 'Disable Notifications' : 'Enable Notifications' }}
+              </button>
         </div>
       </div>
     </div>
@@ -321,13 +336,12 @@ watch(() => auth.loading, (isLoading) => {
 <style scoped>
 /* Custom toggle switch styling */
 .dot {
-  transform: translateX(0);
+  left: 0.25rem;
 }
-input:checked ~ .dot {
-  transform: translateX(100%);
-  background-color: #48bb78; /* Tailwind green-500 */
+input:checked + .block {
+  background-color: #4f46e5;
 }
-input:checked ~ .block {
-    background-color: #63b3ed; /* Tailwind blue-400 */
+input:checked + .block + .dot {
+  transform: translateX(1.5rem);
 }
 </style> 
