@@ -13,14 +13,20 @@ const checklist = useChecklistStore();
 // const admin = useAdminStore(); // Removed unused admin variable
 const router = useRouter();
 const showLoginForm = ref(false);
+const isMobileMenuOpen = ref(false);
 
 const toggleLoginForm = () => {
   showLoginForm.value = !showLoginForm.value;
 };
 
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+};
+
 const handleLogout = async () => {
   await auth.logout();
   router.push('/');
+  isMobileMenuOpen.value = false;
 };
 
 const checkAndSendReminderNotification = async () => {
@@ -147,7 +153,36 @@ watch(() => auth.user, async (newUser) => {
             </router-link>
           </div>
           
-          <div class="flex items-center space-x-4">
+          <!-- Mobile menu button -->
+          <div class="flex items-center sm:hidden">
+            <button
+              @click="toggleMobileMenu"
+              class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+            >
+              <span class="sr-only">Open main menu</span>
+              <svg
+                class="h-6 w-6"
+                :class="{ 'hidden': isMobileMenuOpen, 'block': !isMobileMenuOpen }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg
+                class="h-6 w-6"
+                :class="{ 'block': isMobileMenuOpen, 'hidden': !isMobileMenuOpen }"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Desktop menu -->
+          <div class="hidden sm:flex sm:items-center sm:space-x-4">
             <template v-if="auth.loading">
               <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-500"></div>
             </template>
@@ -171,7 +206,6 @@ watch(() => auth.user, async (newUser) => {
               </button>
             </template>
             <template v-else>
-              <!-- Login button only shown if login form is not already open -->
               <button
                 v-if="!showLoginForm"
                 @click="toggleLoginForm"
@@ -181,6 +215,49 @@ watch(() => auth.user, async (newUser) => {
               </button>
             </template>
           </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div
+        class="sm:hidden"
+        :class="{ 'block': isMobileMenuOpen, 'hidden': !isMobileMenuOpen }"
+      >
+        <div class="pt-2 pb-3 space-y-1">
+          <template v-if="auth.loading">
+            <div class="px-4 py-2">
+              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-500"></div>
+            </div>
+          </template>
+          <template v-else-if="auth.user">
+            <div class="px-4 py-2 text-gray-600">
+              Welcome, {{ auth.user.displayName || auth.user.email }}
+            </div>
+            
+            <router-link
+              v-if="auth.isAdmin"
+              to="/admin"
+              class="block px-4 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              @click="isMobileMenuOpen = false"
+            >
+              Admin Panel
+            </router-link>
+            <button
+              @click="handleLogout"
+              class="block w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:text-red-900 hover:bg-gray-50"
+            >
+              Logout
+            </button>
+          </template>
+          <template v-else>
+            <button
+              v-if="!showLoginForm"
+              @click="toggleLoginForm"
+              class="block w-full text-left px-4 py-2 text-base font-medium text-primary-600 hover:text-primary-900 hover:bg-gray-50"
+            >
+              Login
+            </button>
+          </template>
         </div>
       </div>
     </nav>
