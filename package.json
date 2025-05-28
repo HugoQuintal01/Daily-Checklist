@@ -14,6 +14,7 @@
     "@vueuse/core": "^13.3.0",
     "date-fns": "^4.1.0",
     "firebase": "^11.8.1",
+    "git-filter-repo": "^0.0.30",
     "pinia": "^3.0.2",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
