@@ -223,39 +223,70 @@ watch(() => auth.user, async (newUser) => {
         class="sm:hidden"
         :class="{ 'block': isMobileMenuOpen, 'hidden': !isMobileMenuOpen }"
       >
-        <div class="pt-2 pb-3 space-y-1">
+        <div class="pt-2 pb-3 space-y-1 bg-white shadow-lg rounded-b-lg">
           <template v-if="auth.loading">
-            <div class="px-4 py-2">
-              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-500"></div>
+            <div class="px-4 py-3 flex items-center justify-center">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
             </div>
           </template>
           <template v-else-if="auth.user">
-            <div class="px-4 py-2 text-gray-600">
-              Welcome, {{ auth.user.displayName || auth.user.email }}
+            <!-- User Info Section -->
+            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
+              <div class="flex items-center space-x-3">
+                <div class="flex-shrink-0">
+                  <div class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                    <span class="text-lg font-medium text-primary-600">
+                      {{ (auth.user.displayName || auth.user.email || '?')[0].toUpperCase() }}
+                    </span>
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-900 truncate">
+                    {{ auth.user.displayName || 'User' }}
+                  </p>
+                  <p class="text-sm text-gray-500 truncate">
+                    {{ auth.user.email }}
+                  </p>
+                </div>
+              </div>
             </div>
-            
-            <router-link
-              v-if="auth.isAdmin"
-              to="/admin"
-              class="block px-4 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-              @click="isMobileMenuOpen = false"
-            >
-              Admin Panel
-            </router-link>
-            <button
-              @click="handleLogout"
-              class="block w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:text-red-900 hover:bg-gray-50"
-            >
-              Logout
-            </button>
+
+            <!-- Menu Items -->
+            <div class="mt-1">
+              <router-link
+                v-if="auth.isAdmin"
+                to="/admin"
+                class="flex items-center px-4 py-3 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+                @click="isMobileMenuOpen = false"
+              >
+                <svg class="mr-3 h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Admin Panel
+              </router-link>
+
+              <button
+                @click="handleLogout"
+                class="w-full flex items-center px-4 py-3 text-base font-medium text-red-600 hover:text-red-900 hover:bg-red-50 transition-colors duration-200"
+              >
+                <svg class="mr-3 h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Sign Out
+              </button>
+            </div>
           </template>
           <template v-else>
             <button
               v-if="!showLoginForm"
               @click="toggleLoginForm"
-              class="block w-full text-left px-4 py-2 text-base font-medium text-primary-600 hover:text-primary-900 hover:bg-gray-50"
+              class="w-full flex items-center px-4 py-3 text-base font-medium text-primary-600 hover:text-primary-900 hover:bg-primary-50 transition-colors duration-200"
             >
-              Login
+              <svg class="mr-3 h-6 w-6 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+              Sign In
             </button>
           </template>
         </div>
