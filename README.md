@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Daily Checklist App
 
 A simple daily checklist application built with Vue 3, TypeScript, and Firebase. Track your daily tasks, mark them as complete, and view your history.
@@ -53,3 +54,6 @@ The app can be deployed to any static hosting service (GitHub Pages, Netlify, Ve
 ## License
 
 MIT
+=======
+# Daily-Checklist
+>>>>>>> 590e56cf12011f8bac200cfd825ed7b055af505a
