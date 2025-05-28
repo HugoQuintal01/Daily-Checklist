@@ -263,13 +263,22 @@ watch(() => auth.user, async (newUser) => {
     </nav>
 
     <!-- Login Modal -->
-    <div v-if="showLoginForm" class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold text-gray-900">Login or Register</h2>
+    <div 
+      v-if="showLoginForm" 
+      class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50"
+      @click.self="toggleLoginForm"
+    >
+      <div 
+        class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all duration-300 ease-in-out"
+        :class="showLoginForm ? 'scale-100 opacity-100' : 'scale-95 opacity-0'"
+      >
+        <!-- Header -->
+        <div class="relative px-6 py-4 border-b border-gray-200">
+          <h2 class="text-xl font-semibold text-gray-900">Welcome Back</h2>
+          <p class="mt-1 text-sm text-gray-500">Sign in to your account or create a new one</p>
           <button
             @click="toggleLoginForm"
-            class="text-gray-400 hover:text-gray-500 focus:outline-none"
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full p-1"
           >
             <span class="sr-only">Close</span>
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -277,7 +286,18 @@ watch(() => auth.user, async (newUser) => {
             </svg>
           </button>
         </div>
-        <LoginForm @close="toggleLoginForm" />
+
+        <!-- Content -->
+        <div class="px-6 py-4">
+          <LoginForm @close="toggleLoginForm" />
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-gray-50 rounded-b-lg border-t border-gray-200">
+          <p class="text-xs text-center text-gray-500">
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </div>
       </div>
     </div>
 
