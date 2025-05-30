@@ -7,6 +7,7 @@ import { useRouter } from 'vue-router';
 import LoginForm from './components/LoginForm.vue';
 import { format, isAfter, setHours, setMinutes } from 'date-fns'; // Removed isSameDay, pt as they were unused
 // import { pt } from 'date-fns/locale';
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 
 const auth = useAuthStore();
 const checklist = useChecklistStore();
@@ -14,6 +15,7 @@ const checklist = useChecklistStore();
 const router = useRouter();
 const showLoginForm = ref(false);
 const isMobileMenuOpen = ref(false);
+const isUserMenuOpen = ref(false);
 
 const toggleLoginForm = () => {
   showLoginForm.value = !showLoginForm.value;
@@ -27,6 +29,12 @@ const handleLogout = async () => {
   await auth.logout();
   router.push('/');
   isMobileMenuOpen.value = false;
+  isUserMenuOpen.value = false;
+};
+
+const navigateToProfile = () => {
+  router.push('/profile');
+  isUserMenuOpen.value = false;
 };
 
 const checkAndSendReminderNotification = async () => {
@@ -206,22 +214,6 @@ watch(() => auth.user, async (newUser) => {
             </template>
             <template v-else-if="auth.user">
               <div class="flex items-center space-x-6">
-                <div class="flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-full">
-                  <div class="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-md">
-                    <span class="text-lg font-medium text-white">
-                      {{ (auth.user.displayName || auth.user.email || '?')[0].toUpperCase() }}
-                    </span>
-                  </div>
-                  <div class="flex flex-col">
-                    <span class="text-sm font-medium text-gray-900">
-                      {{ auth.user.displayName || 'User' }}
-                    </span>
-                    <span class="text-xs text-gray-500">
-                      {{ auth.user.email }}
-                    </span>
-                  </div>
-                </div>
-                
                 <router-link
                   to="/history"
                   class="group relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors duration-300"
@@ -244,15 +236,74 @@ watch(() => auth.user, async (newUser) => {
                   Admin Panel
                 </router-link>
 
-                <button
-                  @click="handleLogout"
-                  class="group relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 shadow-md hover:shadow-lg"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd" />
-                  </svg>
-                  Logout
-                </button>
+                <!-- User Menu -->
+                <Menu as="div" class="relative">
+                  <MenuButton
+                    class="flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-md">
+                      <span class="text-lg font-medium text-white">
+                        {{ (auth.user.displayName || auth.user.email || '?')[0].toUpperCase() }}
+                      </span>
+                    </div>
+                    <div class="flex flex-col">
+                      <span class="text-sm font-medium text-gray-900">
+                        {{ auth.user.displayName || 'User' }}
+                      </span>
+                      <span class="text-xs text-gray-500">
+                        {{ auth.user.email }}
+                      </span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                  </MenuButton>
+
+                  <transition
+                    enter-active-class="transition duration-100 ease-out"
+                    enter-from-class="transform scale-95 opacity-0"
+                    enter-to-class="transform scale-100 opacity-100"
+                    leave-active-class="transition duration-75 ease-in"
+                    leave-from-class="transform scale-100 opacity-100"
+                    leave-to-class="transform scale-95 opacity-0"
+                  >
+                    <MenuItems
+                      class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                    >
+                      <div class="py-1">
+                        <MenuItem v-slot="{ active }">
+                          <button
+                            @click="navigateToProfile"
+                            :class="[
+                              active ? 'bg-gray-100 text-gray-900' : 'text-gray-700',
+                              'flex w-full items-center px-4 py-2 text-sm'
+                            ]"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                            </svg>
+                            Profile
+                          </button>
+                        </MenuItem>
+
+                        <MenuItem v-slot="{ active }">
+                          <button
+                            @click="handleLogout"
+                            :class="[
+                              active ? 'bg-gray-100 text-red-600' : 'text-red-600',
+                              'flex w-full items-center px-4 py-2 text-sm'
+                            ]"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd" />
+                            </svg>
+                            Logout
+                          </button>
+                        </MenuItem>
+                      </div>
+                    </MenuItems>
+                  </transition>
+                </Menu>
               </div>
             </template>
             <template v-else>
@@ -326,6 +377,17 @@ watch(() => auth.user, async (newUser) => {
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                 </svg>
                 History
+              </router-link>
+
+              <router-link
+                to="/profile"
+                class="flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300"
+                @click="isMobileMenuOpen = false"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+                Profile
               </router-link>
 
               <router-link

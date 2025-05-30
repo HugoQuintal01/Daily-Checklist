@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useChecklistStore } from '../stores/checklist';
 import type { ChecklistItem } from '../types/checklist';
+import { Dialog, DialogPanel, DialogTitle, DialogDescription } from '@headlessui/vue';
 
 const props = defineProps<{
   item: ChecklistItem;
@@ -21,6 +22,7 @@ const store = useChecklistStore();
 const isEditingLocal = ref(false);
 const editedTitleLocal = ref(props.item.title);
 const editedDescriptionLocal = ref(props.item.description || '');
+const showConfirmDialog = ref(false);
 
 const startEditLocal = () => {
   isEditingLocal.value = true;
@@ -47,7 +49,20 @@ const cancelEditLocal = () => {
 };
 
 const handleToggleCompleted = async () => {
+  if (!props.item.completed) {
+    showConfirmDialog.value = true;
+  } else {
+    await store.toggleItem(props.item.id);
+  }
+};
+
+const confirmComplete = async () => {
   await store.toggleItem(props.item.id);
+  showConfirmDialog.value = false;
+};
+
+const cancelComplete = () => {
+  showConfirmDialog.value = false;
 };
 
 const handleToggleRepeatable = async () => {
@@ -173,6 +188,41 @@ const handleDeleteItem = async () => {
       </button>
     </div>
   </div>
+
+  <!-- Confirmation Dialog -->
+  <Dialog
+    :open="showConfirmDialog"
+    @close="cancelComplete"
+    class="relative z-50"
+  >
+    <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+      <DialogPanel class="mx-auto max-w-sm rounded-lg bg-white p-6 shadow-xl">
+        <DialogTitle class="text-lg font-medium text-gray-900 mb-2">
+          Complete Task
+        </DialogTitle>
+        <DialogDescription class="text-sm text-gray-500 mb-4">
+          Are you sure you want to mark "{{ item.title }}" as completed?
+        </DialogDescription>
+
+        <div class="mt-4 flex justify-end space-x-3">
+          <button
+            @click="cancelComplete"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Cancel
+          </button>
+          <button
+            @click="confirmComplete"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Complete
+          </button>
+        </div>
+      </DialogPanel>
+    </div>
+  </Dialog>
 </template>
 
 <style scoped>
