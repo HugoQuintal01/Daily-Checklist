@@ -30,21 +30,33 @@ const handleLogout = async () => {
 };
 
 const checkAndSendReminderNotification = async () => {
-  // Only check if notifications are supported and granted
-  if (!('Notification' in window) || Notification.permission !== 'granted') {
-    console.log('Notifications not supported or permission not granted.');
+  // Check if notifications are supported
+  if (!('Notification' in window)) {
+    // Only log once when notifications are not supported
+    if (!localStorage.getItem('notificationsNotSupportedLogged')) {
+      console.log('Notifications are not supported in this browser.');
+      localStorage.setItem('notificationsNotSupportedLogged', 'true');
+    }
+    return;
+  }
+
+  // Check notification permission
+  if (Notification.permission !== 'granted') {
+    // Only log once when permission is not granted
+    if (!localStorage.getItem('notificationsPermissionNotGrantedLogged')) {
+      console.log('Notification permission not granted.');
+      localStorage.setItem('notificationsPermissionNotGrantedLogged', 'true');
+    }
     return;
   }
 
   // Only check if user is logged in and has notifications enabled
   if (!auth.user) {
-     console.log('User not logged in.');
-     return;
+    return;
   }
   const notificationsEnabled = localStorage.getItem(`notificationsEnabled_${auth.user.uid}`) === 'true';
   if (!notificationsEnabled) {
-     console.log('Notifications not enabled in profile.');
-     return;
+    return;
   }
 
   const now = new Date();
@@ -141,15 +153,21 @@ watch(() => auth.user, async (newUser) => {
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm">
+    <nav class="bg-white shadow-lg border-b border-gray-100">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
+        <div class="flex justify-between h-20">
           <div class="flex items-center">
             <router-link 
               to="/" 
-              class="text-xl font-bold text-primary-600 hover:text-primary-700 transition-colors"
+              class="flex items-center space-x-3 text-2xl font-bold text-primary-600 hover:text-primary-700 transition-all duration-300 group"
             >
-              Daily Checklist
+              <div class="relative">
+                <div class="absolute -inset-1 bg-primary-100 rounded-full blur opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 relative" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 4.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V4.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.616a1 1 0 01.894-1.79l1.599.8L9 4.323V3a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <span class="bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent">Daily Checklist</span>
             </router-link>
           </div>
           
@@ -157,11 +175,11 @@ watch(() => auth.user, async (newUser) => {
           <div class="flex items-center sm:hidden">
             <button
               @click="toggleMobileMenu"
-              class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+              class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-all duration-300"
             >
               <span class="sr-only">Open main menu</span>
               <svg
-                class="h-6 w-6"
+                class="h-7 w-7"
                 :class="{ 'hidden': isMobileMenuOpen, 'block': !isMobileMenuOpen }"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -170,7 +188,7 @@ watch(() => auth.user, async (newUser) => {
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
               <svg
-                class="h-6 w-6"
+                class="h-7 w-7"
                 :class="{ 'block': isMobileMenuOpen, 'hidden': !isMobileMenuOpen }"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -182,35 +200,70 @@ watch(() => auth.user, async (newUser) => {
           </div>
 
           <!-- Desktop menu -->
-          <div class="hidden sm:flex sm:items-center sm:space-x-4">
+          <div class="hidden sm:flex sm:items-center sm:space-x-6">
             <template v-if="auth.loading">
-              <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-500"></div>
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
             </template>
             <template v-else-if="auth.user">
-              <span class="text-gray-600">
-                Welcome, {{ auth.user.displayName || auth.user.email }}
-              </span>
-              
-              <router-link
-                v-if="auth.isAdmin"
-                to="/admin"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-              >
-                Admin Panel
-              </router-link>
-              <button
-                @click="handleLogout"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
-              >
-                Logout
-              </button>
+              <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-3 bg-gray-50 px-4 py-2 rounded-full">
+                  <div class="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-md">
+                    <span class="text-lg font-medium text-white">
+                      {{ (auth.user.displayName || auth.user.email || '?')[0].toUpperCase() }}
+                    </span>
+                  </div>
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-900">
+                      {{ auth.user.displayName || 'User' }}
+                    </span>
+                    <span class="text-xs text-gray-500">
+                      {{ auth.user.email }}
+                    </span>
+                  </div>
+                </div>
+                
+                <router-link
+                  to="/history"
+                  class="group relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600 transition-colors duration-300"
+                >
+                  <span class="absolute inset-0 bg-primary-50 rounded-lg transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 relative" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                  </svg>
+                  <span class="relative">History</span>
+                </router-link>
+
+                <router-link
+                  v-if="auth.isAdmin"
+                  to="/admin"
+                  class="group relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300 shadow-md hover:shadow-lg"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
+                  </svg>
+                  Admin Panel
+                </router-link>
+
+                <button
+                  @click="handleLogout"
+                  class="group relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 rounded-lg hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 shadow-md hover:shadow-lg"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd" />
+                  </svg>
+                  Logout
+                </button>
+              </div>
             </template>
             <template v-else>
               <button
                 v-if="!showLoginForm"
                 @click="toggleLoginForm"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                class="group relative inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg hover:from-primary-700 hover:to-primary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-300 shadow-md hover:shadow-lg"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 3a1 1 0 011 1v12a1 1 0 11-2 0V4a1 1 0 011-1zm7.707 3.293a1 1 0 010 1.414L9.414 9H17a1 1 0 110 2H9.414l1.293 1.293a1 1 0 01-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0z" clip-rule="evenodd" />
+                </svg>
                 Login
               </button>
             </template>
@@ -223,7 +276,7 @@ watch(() => auth.user, async (newUser) => {
         class="sm:hidden"
         :class="{ 'block': isMobileMenuOpen, 'hidden': !isMobileMenuOpen }"
       >
-        <div class="pt-2 pb-3 space-y-1 bg-white shadow-lg rounded-b-lg">
+        <div class="pt-2 pb-3 space-y-1 bg-white shadow-xl rounded-b-2xl">
           <template v-if="auth.loading">
             <div class="px-4 py-3 flex items-center justify-center">
               <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500"></div>
@@ -231,20 +284,20 @@ watch(() => auth.user, async (newUser) => {
           </template>
           <template v-else-if="auth.user">
             <!-- User Info Section -->
-            <div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
-              <div class="flex items-center space-x-3">
+            <div class="px-4 py-4 bg-gradient-to-r from-primary-50 to-primary-100 border-b border-primary-200">
+              <div class="flex items-center space-x-4">
                 <div class="flex-shrink-0">
-                  <div class="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
-                    <span class="text-lg font-medium text-primary-600">
+                  <div class="h-12 w-12 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-md">
+                    <span class="text-xl font-medium text-white">
                       {{ (auth.user.displayName || auth.user.email || '?')[0].toUpperCase() }}
                     </span>
                   </div>
                 </div>
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-gray-900 truncate">
+                  <p class="text-base font-medium text-gray-900 truncate">
                     {{ auth.user.displayName || 'User' }}
                   </p>
-                  <p class="text-sm text-gray-500 truncate">
+                  <p class="text-sm text-gray-600 truncate">
                     {{ auth.user.email }}
                   </p>
                 </div>
@@ -252,28 +305,49 @@ watch(() => auth.user, async (newUser) => {
             </div>
 
             <!-- Menu Items -->
-            <div class="mt-1">
+            <div class="mt-1 px-2 py-3 space-y-1">
+              <router-link
+                to="/"
+                class="flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300"
+                @click="isMobileMenuOpen = false"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                </svg>
+                Home
+              </router-link>
+              
+              <router-link
+                to="/history"
+                class="flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300"
+                @click="isMobileMenuOpen = false"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                </svg>
+                History
+              </router-link>
+
               <router-link
                 v-if="auth.isAdmin"
                 to="/admin"
-                class="flex items-center px-4 py-3 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-200"
+                class="flex items-center px-4 py-3 rounded-xl text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300"
                 @click="isMobileMenuOpen = false"
               >
-                <svg class="mr-3 h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" />
                 </svg>
                 Admin Panel
               </router-link>
 
               <button
                 @click="handleLogout"
-                class="w-full flex items-center px-4 py-3 text-base font-medium text-red-600 hover:text-red-900 hover:bg-red-50 transition-colors duration-200"
+                class="flex items-center w-full px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-300"
               >
-                <svg class="mr-3 h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd" />
                 </svg>
-                Sign Out
+                Logout
               </button>
             </div>
           </template>
@@ -281,9 +355,9 @@ watch(() => auth.user, async (newUser) => {
             <button
               v-if="!showLoginForm"
               @click="toggleLoginForm"
-              class="w-full flex items-center px-4 py-3 text-base font-medium text-primary-600 hover:text-primary-900 hover:bg-primary-50 transition-colors duration-200"
+              class="w-full flex items-center px-4 py-4 text-base font-medium text-primary-600 hover:text-primary-900 hover:bg-primary-50 transition-all duration-300"
             >
-              <svg class="mr-3 h-6 w-6 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="mr-3 h-6 w-6 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
               Sign In

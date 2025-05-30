@@ -3,7 +3,6 @@ import { onMounted } from 'vue';
 import { useChecklistStore } from '../stores/checklist';
 import ChecklistItem from '../components/ChecklistItem.vue';
 import AddItemForm from '../components/AddItemForm.vue';
-import HistoryView from '../components/HistoryView.vue';
 import UserProfile from '../components/UserProfile.vue';
 
 const store = useChecklistStore();
@@ -24,12 +23,12 @@ onMounted(async () => {
       <div v-else-if="store.error" class="mt-6 text-center text-red-600">
         {{ store.error }}
       </div>
-      <div v-else-if="store.items.length === 0" class="mt-6 text-center text-gray-600">
-        No items yet. Add your first item above!
+      <div v-else-if="store.activeItems.length === 0" class="mt-6 text-center text-gray-600">
+        No active items. Add your first item above!
       </div>
       <div v-else class="mt-6 space-y-4">
         <ChecklistItem
-          v-for="item in store.items"
+          v-for="item in store.activeItems"
           :key="item.id"
           :item="item"
         />
@@ -37,9 +36,6 @@ onMounted(async () => {
     </div>
     <div>
       <UserProfile />
-      <div class="mt-6">
-        <HistoryView />
-      </div>
     </div>
   </div>
 </template> 

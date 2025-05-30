@@ -18,7 +18,7 @@ service cloud.firestore {
     }
 
     // Checklist items rules
-    match /checklist-items/{itemId} {
+    match /checklist/{itemId} {
       // Regular users can only read their own items
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       // Admin can read all items
@@ -32,7 +32,7 @@ service cloud.firestore {
     }
 
     // History rules
-    match /checklist-history/{historyId} {
+    match /history/{historyId} {
       // Regular users can only read their own history
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       // Admin can read all history

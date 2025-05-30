@@ -6,13 +6,15 @@ const store = useChecklistStore();
 const title = ref('');
 const description = ref('');
 const isOpen = ref(false);
+const repeatable = ref(false);
 
 const handleSubmit = async () => {
   if (!title.value.trim()) return;
   
-  await store.addItem(title.value.trim(), description.value.trim());
+  await store.addItem(title.value.trim(), description.value.trim(), repeatable.value);
   title.value = '';
   description.value = '';
+  repeatable.value = false;
   isOpen.value = false;
 };
 </script>
@@ -49,7 +51,7 @@ const handleSubmit = async () => {
           type="text"
           required
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
-          placeholder="What needs to be done?"
+          placeholder="Add a new task..."
         />
       </div>
 
@@ -62,6 +64,18 @@ const handleSubmit = async () => {
           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 placeholder-gray-400 sm:text-sm p-2"
           placeholder="Add some details..."
         />
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          v-model="repeatable"
+          id="repeatable"
+          class="h-4 w-4 text-blue-600 rounded focus:ring-blue-500"
+        />
+        <label for="repeatable" class="text-sm text-gray-600">
+          Repeat this task daily
+        </label>
       </div>
 
       <div class="flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-3">

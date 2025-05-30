@@ -8,6 +8,8 @@ export interface ChecklistItem {
   userId: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  completedAt?: Timestamp;
+  repeatable?: boolean;
 }
 
 export interface ChecklistHistory {

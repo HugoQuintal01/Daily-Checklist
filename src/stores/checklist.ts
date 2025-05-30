@@ -8,7 +8,29 @@ export const useChecklistStore = defineStore('checklist', {
     items: [] as ChecklistItem[],
     loading: false,
     error: null as string | null,
+    searchQuery: '',
+    lastResetCheck: null as Date | null,
   }),
+
+  getters: {
+    filteredItems: (state) => {
+      if (!state.searchQuery) {
+        // Keep repeatable tasks in the list even when completed
+        return state.items.filter(item => !item.completed || item.repeatable);
+      }
+      
+      const query = state.searchQuery.toLowerCase();
+      return state.items.filter(item => 
+        (!item.completed || item.repeatable) && (
+          item.title.toLowerCase().includes(query) ||
+          (item.description?.toLowerCase().includes(query) ?? false)
+        )
+      );
+    },
+    
+    completedItems: (state) => state.items.filter(item => item.completed && !item.repeatable),
+    activeItems: (state) => state.items.filter(item => !item.completed || item.repeatable),
+  },
 
   actions: {
     async fetchItems() {
@@ -34,7 +56,12 @@ export const useChecklistStore = defineStore('checklist', {
           ...doc.data()
         })) as ChecklistItem[];
 
-        await this.checkAndResetItems();
+        // Only check for reset once per hour
+        const now = new Date();
+        if (!this.lastResetCheck || (now.getTime() - this.lastResetCheck.getTime()) > 3600000) {
+          await this.checkAndResetItems();
+          this.lastResetCheck = now;
+        }
       } catch (error) {
         console.error('Error fetching items:', error);
         this.error = 'Failed to fetch items';
@@ -43,7 +70,7 @@ export const useChecklistStore = defineStore('checklist', {
       }
     },
 
-    async addItem(title: string, description?: string) {
+    async addItem(title: string, description?: string, repeatable: boolean = false) {
       if (!auth.currentUser) {
         this.error = 'User not authenticated';
         return;
@@ -56,7 +83,8 @@ export const useChecklistStore = defineStore('checklist', {
           completed: false,
           userId: auth.currentUser.uid,
           createdAt: Timestamp.now(),
-          updatedAt: Timestamp.now()
+          updatedAt: Timestamp.now(),
+          repeatable
         };
 
         const docRef = await addDoc(collection(db, 'checklist'), newItem);
@@ -81,20 +109,26 @@ export const useChecklistStore = defineStore('checklist', {
         if (!item) return;
 
         const newStatus = !item.completed;
+        const now = Timestamp.now();
+        
         await updateDoc(doc(db, 'checklist', itemId), {
           completed: newStatus,
-          updatedAt: Timestamp.now()
+          updatedAt: now,
+          ...(newStatus ? { completedAt: now } : {})
         });
 
         item.completed = newStatus;
-        item.updatedAt = Timestamp.now();
+        item.updatedAt = now;
+        if (newStatus) {
+          item.completedAt = now;
+        }
 
         // Add to history if completed
         if (newStatus) {
           await addDoc(collection(db, 'history'), {
             itemId,
             userId: auth.currentUser.uid,
-            completedAt: Timestamp.now()
+            completedAt: now
           });
         }
       } catch (error) {
@@ -118,7 +152,7 @@ export const useChecklistStore = defineStore('checklist', {
       }
     },
 
-    async updateItem(itemId: string, updates: { title: string; description?: string }) {
+    async updateItem(itemId: string, updates: { title: string; description?: string; repeatable?: boolean }) {
       if (!auth.currentUser) {
         this.error = 'User not authenticated';
         return;
@@ -153,24 +187,30 @@ export const useChecklistStore = defineStore('checklist', {
         const today = portugalTime.toDateString();
         
         if (lastReset !== today) {
-          // Reset all checked items
+          // Reset only repeatable checked items
           const batch = writeBatch(db);
-          const itemsToReset = this.items.filter(item => item.completed);
+          const itemsToReset = this.items.filter(item => item.completed && item.repeatable);
           
-          itemsToReset.forEach(item => {
-            const itemRef = doc(db, 'checklist', item.id);
-            batch.update(itemRef, {
-              completed: false,
-              updatedAt: Timestamp.now()
+          if (itemsToReset.length > 0) {
+            itemsToReset.forEach(item => {
+              const itemRef = doc(db, 'checklist', item.id);
+              batch.update(itemRef, {
+                completed: false,
+                updatedAt: Timestamp.now()
+              });
+              item.completed = false;
+              item.updatedAt = Timestamp.now();
             });
-            item.completed = false;
-            item.updatedAt = Timestamp.now();
-          });
-          
-          await batch.commit();
-          localStorage.setItem('lastReset', today);
+            
+            await batch.commit();
+            localStorage.setItem('lastReset', today);
+          }
         }
       }
+    },
+
+    setSearchQuery(query: string) {
+      this.searchQuery = query;
     }
   }
 }); 
